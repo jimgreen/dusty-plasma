@@ -3,6 +3,10 @@
 Pi = Lucee.Pi
 log = Lucee.logInfo
 
+--needed
+--Va/c,
+--\bata=2*v_th^2/v_A^2, 
+
 -- physical parameters
 gasGamma = 5./3.
 elcCharge = -1.0
@@ -14,19 +18,20 @@ epsilon0 = 1.0
 mu0 = 1.0
 mgnErrorSpeedFactor = 1.0
 
-Lx = 25.6
-Ly = 12.8
+Lx = 256
+Ly = 128
 n0 = 1.0
-VAe = 0.5 --? electron Alfven velocity
+VAe = 0.05 --? electron Alfven velocity
 plasmaBeta = 1.0
-lambda = 0.5 --?
-TiOverTe = 5.0 --?
+lambda = 5.0 --?
+TiOverTe = 1.0 --?
 nbOverN0 = 0.2 --?
 pert = 0.1 --? perturbation
 
 Valf = VAe*math.sqrt(elcMass/ionMass)
-B0 = Valf*math.sqrt(n0*ionMass)
+B0 = Valf*math.sqrt(n0*ionMass) --? need to discussion
 OmegaCi0 = ionCharge*B0/ionMass
+OmegaCe0 = -elcCharge*B0/elcMass
 psi0 = pert*B0 --?
 
 -- resolution and time-stepping
@@ -34,11 +39,11 @@ NX = 128
 NY = 64
 cfl = 0.9
 tStart = 0.0
-tEnd = 40/OmegaCi0
+tEnd = 40/OmegaCe0
 nFrames = 4
 
 log(string.format("elcMass/ionMass=1/%g",ionMass/elcMass)) --? log(string.format("ionMass/elcMass=%g",ionMass/elcMass))
-log(string.format("Lx=%g, di=%gde", Lx,Lx*math.sqrt(ionMass/elcMass))) --? di = math.sqrt(ionMass/elcMass)*de
+log(string.format("Lx=%gdi=%gde", Lx,Lx*math.sqrt(ionMass/elcMass))) --? di = math.sqrt(ionMass/elcMass)*de
 log(string.format("plasmaBeta=%g", plasmaBeta))
 log(string.format("Valf/c=%g", Valf))
 log(string.format("lambda/di=%g", lambda))
@@ -158,7 +163,7 @@ bcIonCopy = BoundaryCondition.Copy { components = {5, 9} }
 bcIonWall = BoundaryCondition.ZeroNormal { components = {6, 7, 8} }
 bcElcFld = BoundaryCondition.ZeroTangent { components = {10, 11, 12} } --? tangential component of ElcFld is continuous across boundary
 bcMgnFld = BoundaryCondition.ZeroNormal { components = {13, 14, 15} } --? normal component of MgnFld is continuous across the boundary
-bcPot = BoundaryCondition.Copy { components = {16, 17}, fact = {-1, -1} } --?
+bcPot = BoundaryCondition.Copy { components = {16, 17}, fact = {-1, +1} } --?
 --FIXME: fact in bcPot
 
 -- create boundary condition object
