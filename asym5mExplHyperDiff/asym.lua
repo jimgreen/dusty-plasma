@@ -17,7 +17,9 @@ mi = 1
 qi = 1
 n0 = 1 -- thus wpi0 =1, di0 = 1
 mi_me = 25
-Ti_Te = 2
+-- fractions of species temperatures to total temperature
+Ti_Ttot = 2/3
+Te_Ttot = 1/3
 n1_n0 = 1/8
 wpe_wce = 2
 beta0 = 1
@@ -85,8 +87,8 @@ fwdFields_start = 0
 fwdFields_stop = 4
 
 jzc = 0.5*(B1+B0)/l/mu0
-jzc_e = jzc / (1+Ti_Te)
-jzc_i = jzc - jzc_e
+jzc_e = jzc * Ti_Ttot
+jzc_i = jzc * Te_Ttot
 vzc_e = jzc_e /qe/(nc+0.5*(n1+n0))
 vzc_i = jzc_i /qi/(nc+0.5*(n1+n0))
 
@@ -153,15 +155,15 @@ init = function(x,y,z)
    local rhovx_e, rhovy_e = 0,0
    local rhovx_i, rhovy_i = 0,0
    local jz = 0.5*(B1+B0)/l/mu0 * icosh2y
-   local jz_e = jz / (1+Ti_Te) -- current partition due to diamagnetic drift
+   local jz_e = jz * Te_Ttot -- current partition due to diamagnetic drift
    local rhovz_e = jz_e * me/qe * (1 + Vnoise_level*math.random()*math.random(-1,1))
-   local jz_i = jz - jz_e
+   local jz_i = jz * Ti_Ttot
    local rhovz_i = jz_i * mi/qi * (1 + Vnoise_level*math.random()*math.random(-1,1))
 
    local p = n*kTtotal
-   local p_e = p / (1+Ti_Te)
+   local p_e = p * Te_Ttot
    local u_e = p_e / (gasGamma-1) + 0.5*rhovz_e^2/rho_e
-   local p_i = p - p_e
+   local p_i = p * Ti_Ttot 
    local u_i = p_i / (gasGamma-1) + 0.5*rhovz_i^2/rho_i
 
    local Ex,Ey,Ez = 0, 0, 0
