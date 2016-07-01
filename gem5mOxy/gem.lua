@@ -1,11 +1,8 @@
 
 --[[
   2D FIVE-MOMENT SIMULATION
-  ASYMMETRIC RECONNECTION WITHOUT GUIDE FIELD
+  SYMMETRIC RECONNECTION WITHOUT GUIDE FIELD (GEM-LIKE)
   IONS: HYDROGEN+OXYGEN
-  Based on Chen et al. 2016 10.1002/2016GL068243
-  NOTES:
-  * The L,M,N coordinates in the paper translate to x, y, -z in this script.
 --]]
 
 log = function(...) Lucee.logInfo(string.format(...)) end
@@ -41,44 +38,37 @@ ni_ntot = 1/2
 no_ntot = 1/2
 ne_ntot = 1
 
-n1_n0 = 1/8
-wpe_wce = 2
+nb_n0 = 0.2
+wpe_wce = 40 -- == vAe/c; needs to be small to make sure vAo/c < 1
 beta0 = 1
-beta1 = 1/15
 Bz0_B0 = 0
-pert0 = 0.36
-Bnoise_level = 0.15
-Vnoise_level = 0.15
+pert0 = 0.1
+Bnoise_level = 0
+Vnoise_level = 0
 gasGamma = 5/3
 
+nb = n0 * nb_n0
 wpe0 = math.sqrt(mi/me)
 wce0 = wpe0/wpe_wce
 B0 = -wce0*me/qe
-n1 = n0 * n1_n0
-B1 = B0 * math.sqrt( (n1/n0) / (beta1/beta0) )
 Bz0 = B0 * Bz0_B0
-nc = (n0-n1) * ((B0+B1)/2)^2 / (B1^2-B0^2)
 pmag0 = B0^2/2/mu0
 p0 = pmag0*beta0
 kTtotal = p0/n0 -- k_B*(Te+Ti)
-p1 = n1*kTtotal
-pmag1 = B1^2/2/mu0
 vA0 = B0/math.sqrt(mu0*n0*mi)
 cs0 = math.sqrt(gasGamma*p0/n0/mi)
-vA1 = B1/math.sqrt(mu0*n1*mi)
-cs1 = math.sqrt(gasGamma*p1/n1/mi)
 wci0 = qi*B0/mi
 di0 = 1
 de0 = lightSpeed/wpe0
 psi0 = pert0 * di0 * B0
 
-l = 1
-Lx = 75
-Ly = 25
-Nx = 1536/8
-Ny = 512/8
-tEnd = 100/wci0
-nFrames = 10
+l = 0.9
+Lx = 100
+Ly = 50
+Nx = 512
+Ny = 256
+tEnd = 200/wci0
+nFrames = 20
 Lucee.IsRestarting = false
 Lucee.RestartFrame = -1
 
@@ -101,32 +91,26 @@ numFluids = 3
 charge = {qe, qi, qo}
 mass = {me, mi, mo}
 
-writeFwdFields = true
+writeFwdFields = false
 fwdFields_start = 0
 fwdFields_stop = 4
 
-jzc = 0.5*(B1+B0)/l/mu0
+jzc = -B0/l/mu0
 jzc_e = jzc * Ti_Ttot
 jzc_i = jzc * Te_Ttot
-vzc_e = jzc_e /qe/(nc+0.5*(n1+n0))
-vzc_i = jzc_i /qi/(nc+0.5*(n1+n0))
+vzc_e = jzc_e /qe/(n0+nb)
+vzc_i = jzc_i /qi/(n0+nb)
 
 log("====== verifications  ======")
-log("B1/B0 = %g", B1/B0)
-log("n1/n0 = %g", n1/n0)
-log("nc/n0 = %g = 1/%g", nc/n0, n0/nc)
 log("vA0/c = %g = 1/%g", vA0/lightSpeed, lightSpeed/vA0)
 log("cs0/c = %g = 1/%g", cs0/lightSpeed, lightSpeed/cs0)
 log("p0/pmag0 = %g", p0/pmag0)
-log("vA1/c = %g = 1/%g", vA1/lightSpeed, lightSpeed/vA1)
-log("cs1/c = %g = 1/%g", cs1/lightSpeed, lightSpeed/cs1)
-log("p1/pmag1 = %g", p1/pmag1)
 log("jzc = %g B0/Ly/mu0", jzc/(B0/Ly/mu0))
 
 log("======= ic values ==========")
-log("n0 = %g, n1 = %g, nc+nb = %g", n0, n1, nc+0.5*(n1+n0))
-log("p0 = %g, p1 = %g", p0, p1)
-log("B0 = %g, B1 = %g", B0, B1)
+log("n0 = %g, nb = %g, n0+nb = %g", n0, nb, n0+nb)
+log("p0 = %g", p0)
+log("B0 = %g", B0)
 log("jzc_e = %g", jzc_e)
 log("jzc_i = %g", jzc_i)
 log("vzc_e = %g = %g vA0", vzc_e, vzc_e/vA0)
@@ -137,17 +121,15 @@ log("lightSpeed = %g", lightSpeed)
 log("mu0 = %g", mu0)
 log("me = %g", me)
 log("mi = %g", mi)
+log("mo = %g", mo)
 log("qe = %g", qe)
 log("qi = %g", qi)
+log("qo = %g", qo)
 
 log("====== other parameters ====")
 log("dtHyp/dtDiff = %g", dtHyp/dtDiff)
 
 log("====== normalizations ======")
-log("   velocity : %g", vA0)
-log("    E field : %g", 2*vA0*B0)
-log("temperature : %g", me*vA0^2)
-log("       time : %g", 1/wci0)
 log("============================")
 
 -----------------------
@@ -158,9 +140,7 @@ init = function(x,y,z)
    local icosh2y = 1/(math.cosh(y/l))^2
    local Pi = Lucee.Pi
 
-   local nh = nc * icosh2y
-   local nb = 0.5*(n1+n0) + 0.5*(n0-n1)*tanhy
-   local n = nh+nb
+   local n = n0 * icosh2y + nb
    local n_e = n * ne_ntot
    local n_i = n * ni_ntot
    local n_o = n * no_ntot
@@ -168,17 +148,17 @@ init = function(x,y,z)
    local rho_i = n_i*mi
    local rho_o = n_o*mo
 
-   local Bxb = 0.5*(B1-B0) - 0.5*(B1+B0)*tanhy
-   local Bx = Bxb + psi0*(Pi/Ly) * math.cos(2*Pi*x/Lx) * math.sin(Pi*y/Ly) 
+   local Bxb = B0*tanhy
+   local Bx = Bxb - psi0*(Pi/Ly) * math.cos(2*Pi*x/Lx) * math.sin(Pi*y/Ly) 
    Bx = Bx * (1 + Bnoise_level*math.random()*math.random(-1,1))
-   local By = - psi0 * (2*Pi/Lx) * math.sin(2*Pi*x/Lx) * math.cos(Pi*y/Ly)
+   local By = psi0 * (2*Pi/Lx) * math.sin(2*Pi*x/Lx) * math.cos(Pi*y/Ly)
    By = By * (1 + Bnoise_level*math.random()*math.random(-1,1))
    local Bz = Bz0
 
    local rhovx_e, rhovy_e = 0,0
    local rhovx_i, rhovy_i = 0,0
    local rhovx_o, rhovy_o = 0,0
-   local jz = 0.5*(B1+B0)/l/mu0 * icosh2y
+   local jz = -B0/l/mu0 * icosh2y
    local jz_e = jz * Te_Ttot -- current partition due to diamagnetic drift
    local rhovz_e = jz_e * me/qe * (1 + Vnoise_level*math.random()*math.random(-1,1))
    local jz_i = jz * Ti_Ttot
