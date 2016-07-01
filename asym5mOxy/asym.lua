@@ -10,6 +10,13 @@
 
 log = function(...) Lucee.logInfo(string.format(...)) end
 
+function HERE()
+   local info = debug.getinfo(2)
+   str = string.format("HERE: %d %s: %s",
+       info.currentline, info.source, tostring(info.name))
+   log(str)
+end
+
 lightSpeed = 1
 mu0 = 1
 epsilon0 = 1/math.sqrt(lightSpeed)/mu0
