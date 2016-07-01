@@ -13,10 +13,11 @@ lightSpeed = 1
 mu0 = 1
 epsilon0 = 1/math.sqrt(lightSpeed)/mu0
 
+n0 = 1 -- thus wpi0 = 1, di0 = 1
 mi = 1
 qi = 1
-n0 = 1 -- thus wpi0 =1, di0 = 1
-mi_me = 25
+me = 1/25
+qe = -1
 -- fractions of species temperatures to total temperature
 Ti_Ttot = 2/3
 Te_Ttot = 1/3
@@ -30,8 +31,6 @@ Bnoise_level = 0.15
 Vnoise_level = 0.15
 gasGamma = 5/3
 
-me = mi / mi_me
-qe = -qi
 wpe0 = math.sqrt(mi/me)
 wce0 = wpe0/wpe_wce
 B0 = -wce0*me/qe
