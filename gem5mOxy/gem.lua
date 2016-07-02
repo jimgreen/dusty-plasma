@@ -30,9 +30,9 @@ qo = 1
 me = 1/25
 qe = -1
 -- fractions of species temperatures to total temperature
-Ti_Ttot = 1/3
-To_Ttot = 1/3
-Te_Ttot = 1/3
+pi_ptot = 1/3
+po_ptot = 1/3
+pe_ptot = 1/3
 -- fractions of species number density to total number density
 ni_ntot = 1/2
 no_ntot = 1/2
@@ -54,7 +54,9 @@ B0 = -wce0*me/qe
 Bz0 = B0 * Bz0_B0
 pmag0 = B0^2/2/mu0
 p0 = pmag0*beta0
-kTtotal = p0/n0 -- k_B*(Te+Ti)
+Ti0 = p0 * pi_ptot / (n0 * ni_ntot)
+To0 = p0 * po_ptot / (n0 * no_ntot)
+Te0 = p0 * pe_ptot / (n0 * ne_ntot)
 vA0 = B0/math.sqrt(mu0*n0*mi)
 cs0 = math.sqrt(gasGamma*p0/n0/mi)
 wci0 = qi*B0/mi
@@ -96,10 +98,12 @@ fwdFields_start = 0
 fwdFields_stop = 4
 
 jzc = -B0/l/mu0
-jzc_e = jzc * Ti_Ttot
-jzc_i = jzc * Te_Ttot
+jzc_e = jzc * pi_ptot
+jzc_i = jzc * pe_ptot
+jzc_o = jzc * po_ptot
 vzc_e = jzc_e /qe/(n0+nb)
 vzc_i = jzc_i /qi/(n0+nb)
+vzc_o = jzc_i /qo/(n0+nb)
 
 log("====== verifications  ======")
 log("vA0/c = %g = 1/%g", vA0/lightSpeed, lightSpeed/vA0)
@@ -159,19 +163,18 @@ init = function(x,y,z)
    local rhovx_i, rhovy_i = 0,0
    local rhovx_o, rhovy_o = 0,0
    local jz = -B0/l/mu0 * icosh2y
-   local jz_e = jz * Te_Ttot -- current partition due to diamagnetic drift
+   local jz_e = jz * pe_ptot -- current partition due to diamagnetic drift
    local rhovz_e = jz_e * me/qe * (1 + Vnoise_level*math.random()*math.random(-1,1))
-   local jz_i = jz * Ti_Ttot
+   local jz_i = jz * pi_ptot
    local rhovz_i = jz_i * mi/qi * (1 + Vnoise_level*math.random()*math.random(-1,1))
-   local jz_o = jz * To_Ttot
+   local jz_o = jz * po_ptot
    local rhovz_o = jz_o * mo/qo * (1 + Vnoise_level*math.random()*math.random(-1,1))
 
-   local p = n*kTtotal
-   local p_e = p * Te_Ttot
+   local p_e = n * Te0
    local u_e = p_e / (gasGamma-1) + 0.5*rhovz_e^2/rho_e
-   local p_i = p * Ti_Ttot 
+   local p_i = n * Ti0
    local u_i = p_i / (gasGamma-1) + 0.5*rhovz_i^2/rho_i
-   local p_o = p * Ti_Ttot 
+   local p_o = n * To0 
    local u_o = p_o / (gasGamma-1) + 0.5*rhovz_o^2/rho_o
 
    local Ex,Ey,Ez = 0, 0, 0
