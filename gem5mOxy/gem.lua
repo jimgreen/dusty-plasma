@@ -575,6 +575,43 @@ end
 ------------
 -- OUTPUT --
 ------------
+-- A generic function to run an updater
+function runUpdater(updater, tCurr, dt, inpFlds, outFlds)
+   updater:setCurrTime(tCurr)
+   if inpFlds then
+      updater:setIn(inpFlds)
+   end
+   if outFlds then
+      updater:setOut(outFlds)
+   end
+   return updater:advance(tCurr+dt)
+end
+
+-- dynvector to store integrated flux
+ByAlias = qNew:alias(19, 20) -- By
+ByFlux = DataStruct.DynVector { numComponents = 1 }
+ByFluxCalc = Updater.IntegrateFieldAlongLine2D {
+   onGrid = grid,
+   -- start cell
+   startCell = {0, Ny/2},
+   -- direction to integrate in
+   dir = 0,
+   -- number of cells to integrate
+   numCells = Nx,
+   -- integrand
+   integrand = function (By)
+      return math.abs(By)
+   end,
+}
+
+function calcDiagnostics(tCurr, dt)
+   runUpdater(ByFluxCalc, tCurr, dt, {ByAlias}, {ByFlux})
+end
+
+function writeDiagnostics(frame)
+   ByFlux:write( string.format("ByFlux_%d.h5", frame) )
+end
+
 -- start and stop are first and last components to be written
 -- if start or stop is not set, all components are written
 function runOutput(myQ, frame, tCurr, tag, start, stop)
@@ -667,10 +704,14 @@ function runSimulation(tStart, tEnd, nFrames, initDt)
             break
          end
 
+        -- compute diagnostics
+        calcDiagnostics(tCurr, myDt)
+
          q:copy(qNew)
          tCurr = tCurr + myDt
          if (tCurr > tNextFrame or tCurr >= tEnd or outputEveryStep) then
             log(">>> Writing output %d at t = %g...", frame, tCurr)
+            writeDiagnostics(frame)
             runOutput(qNew, frame, tCurr)
             frame = frame + 1
             tNextFrame = tNextFrame + tFrame
