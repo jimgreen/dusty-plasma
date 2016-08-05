@@ -124,11 +124,11 @@ mass = {me, mi, mo}
 -- e.g., if nFrame = 10, tEnd = 1, then the first main frame writes at tEnd = 0.1
 -- assume the step count is, say, 1000, then a fwd (forward) field will be written
 -- at step 1001
-writeFwdFields = false
+writeFwdFields = true
 -- first component of fields to be written
-fwdFields_start = 0 -- electron density
+fwdFields_start = nil -- electron density
 -- last component of fields to be written + 1
-fwdFields_stop = 5 -- electron energy + 1
+fwdFields_stop = nil -- electron energy + 1
 -- .e.g., fwdFields_start, stop = 0, 5 will write all electron fields
 
 -- diagnostic parameters
@@ -709,6 +709,12 @@ function runSimulation(tStart, tEnd, nFrames, initDt)
 
          q:copy(qNew)
          tCurr = tCurr + myDt
+         if doWriteFwdFields then
+            log(">>> Writing output %d (forward) at t = %g...", frame-1, tCurr)
+            runOutput(qNew, frame-1, tCurr, "f", fwdFields_start, fwdFields_stop)
+            doWriteFwdFields = false
+         end
+
          if (tCurr > tNextFrame or tCurr >= tEnd or outputEveryStep) then
             log(">>> Writing output %d at t = %g...", frame, tCurr)
             writeDiagnostics(frame)
@@ -718,11 +724,6 @@ function runSimulation(tStart, tEnd, nFrames, initDt)
             stepInFrame = 0
            
             doWriteFwdFields = true and writeFwdFields
-         end
-         if doWriteFieldsFwd then
-            log(">>> Writing output %d (forward) at t = %g...", frame-1, tCurr)
-            runOutput(qNew, frame-1, tCurr, "f", fwdFields_start, fwdFields_stop)
-            doWriteFwdFields = false
          end
 
          myDt = dtSuggested
