@@ -90,6 +90,10 @@ Ly = 50*di0
 -- grid size
 Nx = 512
 Ny = 256
+-- domain
+lower = {-Lx/2, -Ly/2}
+upper = {Lx/2, Ly/2}
+cells = {Nx, Ny}
 
 -- run control
 tEnd = 200/wci0
@@ -192,8 +196,10 @@ log("ne_frac = %g", ne_frac)
 log("ni_frac = %g", ni_frac)
 log("no_frac = %g", no_frac)
 
-log("====== other parameters ====")
-log("dtHyp/dtDiff = %g", dtHyp/dtDiff)
+if applyDiff then
+   log("====== other parameters ====")
+   log("dtHyp/dtDiff = %g", dtHyp/dtDiff)
+end
 
 log("====== normalizations ======")
 log("============================")
@@ -253,9 +259,9 @@ end
 ----------------------------
 decomposition = DecompRegionCalc2D.CartGeneral {}
 grid = Grid.RectCart2D {
-   lower = {-Lx/2, -Ly/2},
-   upper = {Lx/2, Ly/2},
-   cells = {Nx, Ny},
+   lower = lower,
+   upper = upper,
+   cells = cells,
    decomposition = decomposition,
    periodicDirs = {0},
 }
