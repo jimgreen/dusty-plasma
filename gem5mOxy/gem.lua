@@ -231,11 +231,12 @@ init = function(x,y,z)
    local rhovx_i, rhovy_i = 0,0
    local rhovx_o, rhovy_o = 0,0
    local jz = -B0/l/mu0 * icosh2y
-   local jz_e = jz * pe_frac -- current partition due to diamagnetic drift
-   local rhovz_e = jz_e * me/qe * (1 + Vnoise_level*math.random()*math.random(-1,1))
+   -- current partition due to diamagnetic drift
+   local jz_e = jz * pe_frac
    local jz_i = jz * pi_frac
-   local rhovz_i = jz_i * mi/qi * (1 + Vnoise_level*math.random()*math.random(-1,1))
    local jz_o = jz * po_frac
+   local rhovz_e = jz_e * me/qe * (1 + Vnoise_level*math.random()*math.random(-1,1))
+   local rhovz_i = jz_i * mi/qi * (1 + Vnoise_level*math.random()*math.random(-1,1))
    local rhovz_o = jz_o * mo/qo * (1 + Vnoise_level*math.random()*math.random(-1,1))
 
    local p_e = n_e * Te0
