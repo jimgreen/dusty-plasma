@@ -108,7 +108,7 @@ elcErrorSpeedFactor = 0
 mgnErrorSpeedFactor = 1
 
 -- additional diffusion (hyper-resistivity) term to electron momentum equation
-applyDiff = true
+applyDiff = false
 -- dtHyp/dtDiff, larger value means larger diffusion and smaller time step size
 dtRatio = 0.1
 -- smallest grid size, used to compute time step size
