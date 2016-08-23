@@ -238,14 +238,19 @@ init = function(x,y,z)
    local jz_o = jz * po_frac
    local rhovz_o = jz_o * mo/qo * (1 + Vnoise_level*math.random()*math.random(-1,1))
 
-   local p_e = n * Te0
+   local p_e = n_e * Te0
    local u_e = p_e / (gasGamma-1) + 0.5*rhovz_e^2/rho_e
-   local p_i = n * Ti0
+   local p_i = n_i * Ti0
    local u_i = p_i / (gasGamma-1) + 0.5*rhovz_i^2/rho_i
-   local p_o = n * To0 
+   local p_o = n_o * To0 
    local u_o = p_o / (gasGamma-1) + 0.5*rhovz_o^2/rho_o
-
-   local Ex,Ey,Ez = 0, 0, 0
+   local vx_e = rhovx_e/rho_e
+   local vy_e = rhovy_e/rho_e
+   local vz_e = rhovz_e/rho_e
+   
+   local Ex = -vy_e*Bz + vz_e*By
+   local Ey = -vz_e*Bx + vx_e*Bz
+   local Ez = -vx_e*By + vy_e*Bx
 
    return
       rho_e, rhovx_e, rhovy_e, rhovz_e, u_e,
